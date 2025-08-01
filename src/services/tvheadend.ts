@@ -8,7 +8,7 @@ export class TVHeadendClient {
   constructor(config: TVHConfig) {
     this.config = config;
     this.api = axios.create({
-      baseURL: `http://${config.host}:${config.port}`,
+      baseURL: `https://${config.host}:${config.port}`,
       timeout: 10000
     });
   }
@@ -31,7 +31,7 @@ export class TVHeadendClient {
   }
 
   getStreamUrl(channelUuid: string): string {
-    const baseUrl = `http://${this.config.host}:${this.config.port}`;
+    const baseUrl = `https://${this.config.host}:${this.config.port}`;
     return `${baseUrl}/stream/channel/${channelUuid}?profile=webtv-vp8-vorbis-webm`;
   }
 

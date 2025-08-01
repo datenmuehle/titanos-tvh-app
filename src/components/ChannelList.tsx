@@ -45,7 +45,7 @@ export const ChannelList: React.FC<ChannelListProps> = ({
   // Helper function to get the logo URL
   const getLogoUrl = (channel: Channel): string | null => {
     if (channel.icon_public_url) {
-      return `http://${tvhConfig.host}:${tvhConfig.port}/${channel.icon_public_url}`;
+      return `https://${tvhConfig.host}:${tvhConfig.port}/${channel.icon_public_url}`;
     }
     return null;
   };
