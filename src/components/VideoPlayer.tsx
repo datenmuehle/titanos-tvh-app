@@ -85,19 +85,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, [streamUrl]);
 
   return (
-    <div className="video-player">
-      <button className="back-button" onClick={onBack}>
-        ← Back to Channels
-      </button>
-      <h2>Now Playing: {channel.name}</h2>
-      <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '1rem' }}>
-        Stream URL: {streamUrl.replace(/:[^:@]*@/, ':***@')}
-      </p>
+    <div className="video-player-fullsize">
+      <div className="video-controls-overlay">
+        <button className="back-button-overlay" onClick={onBack}>
+          ← Back to Channels
+        </button>
+        <div className="channel-info-overlay">
+          <h3>{channel.name}</h3>
+        </div>
+      </div>
       <video
         ref={videoRef}
         controls
-        width="100%"
-        height="auto"
+        className="video-fullsize"
         muted
         playsInline
       />
