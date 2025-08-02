@@ -19,6 +19,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  const [showNginxModal, setShowNginxModal] = useState(false);
 
   // Load saved configuration on app startup
   useEffect(() => {
@@ -101,6 +102,14 @@ function App() {
 
   const toggleMenu = useCallback(() => {
     setMenuOpen(prev => !prev);
+  }, []);
+
+  const handleShowNginxModal = useCallback(() => {
+    setShowNginxModal(true);
+  }, []);
+
+  const handleCloseNginxModal = useCallback(() => {
+    setShowNginxModal(false);
   }, []);
 
   // Show loading screen during initialization
@@ -215,6 +224,16 @@ function App() {
                 <li>No authentication required - server must be configured for public access</li>
                 <li>Ensure <strong>CORS</strong> is enabled on the TVHeadend server. Maybe use a nginx reverse proxy to handle CORS headers.</li>
                 <li><strong>Auto-Save:</strong> Server configuration is automatically saved and restored on next visit</li>
+                <li>
+                  <strong>NGINX Proxy:</strong> Need help setting up NGINX? 
+                  <button 
+                    className="nginx-link" 
+                    onClick={handleShowNginxModal}
+                    type="button"
+                  >
+                    View example configuration
+                  </button>
+                </li>
               </ul>
             </div>
 
@@ -245,12 +264,89 @@ function App() {
                 <li><strong>No Channels:</strong> Verify TVHeadend has configured channels</li>
                 <li><strong>Streaming Issues:</strong> Check network connection and server load</li>
                 <li><strong>No Video:</strong> Browser may not support the stream format</li>
+                <li><strong>Authentication Required:</strong> Ensure server is set to allow public access</li>
+                <li><strong>Ensure browser allows accessing tvheadend with a selfsigned ssl certificate.</strong></li>
               </ul>
             </div>
 
             <div className="help-footer">
               <p>Titanos TVH App - Premium TV Streaming Experience</p>
               <p>Version 1.0.0</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNginxModal && (
+        <div className="modal-overlay" onClick={handleCloseNginxModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>NGINX Configuration Example</h3>
+              <button className="modal-close" onClick={handleCloseNginxModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Example NGINX configuration for TVHeadend proxy with CORS support:</p>
+              <pre className="nginx-config">
+{`server {
+    listen 8080;
+
+    location / {
+        proxy_pass http://localhost:9981;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        # Auth-Header zum Backend senden
+        proxy_set_header Authorization "Basic dXNlcjp1c2Vy";
+
+        # CORS-Header für *alle* Antworten
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
+
+        # OPTIONS-Preflight beantworten
+        if ($request_method = OPTIONS) {
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
+            add_header 'Access-Control-Max-Age' 1728000 always;
+            add_header 'Content-Type' 'text/plain; charset=UTF-8' always;
+            add_header 'Content-Length' 0 always;
+            return 204;
+        }
+    }
+
+    # Optional: Fehlerseiten ebenfalls mit CORS-Header ausstatten
+    error_page 401 403 404 /error_cors;
+
+    location = /error_cors {
+        internal;
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type' always;
+        return 403;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name localhost;
+
+    ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+    ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}`}
+              </pre>
             </div>
           </div>
         </div>
